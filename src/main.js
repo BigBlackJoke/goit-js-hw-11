@@ -7,6 +7,7 @@ import "simplelightbox/dist/simple-lightbox.min.css";
 
 const form = document.querySelector(".form");
 const input = document.querySelector(".searching-input");
+const gallery = document.querySelector(".gallery-elements");
 
 const imagesBackend = {
     webformatURL: "",
@@ -16,6 +17,14 @@ const imagesBackend = {
     views: 0,
     comments: 0,
     downloads: 0
+};
+
+const options = {
+  method: "POST",
+  body: JSON.stringify(imagesBackend),
+//   headers: {
+//     "Content-Type": "application/json; charset=UTF-8",
+//   },
 };
 
 form.addEventListener("submit", event => {
@@ -39,14 +48,18 @@ form.addEventListener("submit", event => {
                 return response.json();
             })
             .then(() => {
-                const makingGallery = images.map((image => {
+                const makingGallery = imagesBackend.map((imageBackend => {
                     const list = document.createElement('li');
                     const a = document.createElement('a');
                     const img = document.createElement('img');
-                    a.href = imagesBackend.largeImageURL;
-                    img.src = imagesBackend.webformatURL;
-                    img.alt = imagesBackend.tags;
-                }))
+                    a.href = imageBackend.largeImageURL;
+                    img.src = imageBackend.webformatURL;
+                    img.alt = imageBackend.tags;
+                    a.appendChild(img);
+                    list.appendChild(a);
+                    return list;
+                }));
+                gallery.append(...makingGallery);
             })
             .catch((error) => console.log(error));
         
