@@ -4,73 +4,59 @@ import "izitoast/dist/css/iziToast.min.css";
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
 
+import { renderFunctions } from './js/render-functions';
+import { pixabayApi } from './js/pixabay-api';
+
 
 const form = document.querySelector(".form");
 const input = document.querySelector(".searching-input");
 const gallery = document.querySelector(".gallery-elements");
+const loader = document.querySelector(".loader");
 
-const imagesBackend = {
-    webformatURL: "",
-    largeImageURL: "",
-    tags: "",
-    likes: 0,
-    views: 0,
-    comments: 0,
-    downloads: 0
-};
+loader.style.display = 'none';
 
-const options = {
-  method: "POST",
-  body: JSON.stringify(imagesBackend),
-//   headers: {
-//     "Content-Type": "application/json; charset=UTF-8",
-//   },
-};
+let lightbox = new SimpleLightbox('.gallery a', { captions: true, captionsData: 'alt', captionPosition: 'bottom', captionDelay: 250 });
 
-form.addEventListener("submit", event => {
+form.addEventListener("submit", (event) => {
     event.preventDefault();
     if (input.value != "") {
-        const searchParams = new URLSearchParams({
-            key: "44096290-4b282435e4320beb633e0ff8a",
-            q: input.value,
-            image_type: "photo",
-            orientation: "horizontal",
-            safesearch: "true",
-        });
 
-        const url = `https://pixabay.com/api/?${searchParams}`;
+        loader.style.display = 'block';
 
-        fetch(url)
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(response.status);
-                }
-                return response.json();
+        pixabayApi(input.value)
+            .then((data) => {
+                if (data.hits.length === 0) {
+                    iziToast.show({
+                        message: 'Sorry, there are no images matching your search query. Please, try again!',
+                        messageColor: 'rgba(250, 250, 251, 1)',
+                        messageSize: '16px',
+                        messageLineHeight: '24px',
+                        backgroundColor: 'rgba(181, 27, 27, 1)',
+                        position: 'topRight',
+                        maxWidth: '432px',
+                        timeout: 2000
+                    });
+                } else {
+                    renderFunctions(data, gallery);
+                    lightbox.refresh();
+                    input.value = "";
+                };
             })
-            .then(() => {
-                const makingGallery = imagesBackend.map((imageBackend => {
-                    const list = document.createElement('li');
-                    const a = document.createElement('a');
-                    const img = document.createElement('img');
-                    a.href = imageBackend.largeImageURL;
-                    img.src = imageBackend.webformatURL;
-                    img.alt = imageBackend.tags;
-                    a.appendChild(img);
-                    list.appendChild(a);
-                    return list;
-                }));
-                gallery.append(...makingGallery);
+            .catch((error) => {
+                console.log(error);
             })
-            .catch((error) => console.log(error));
-        
+            .finally(() => {
+                loader.style.display = 'none';
+            });
     } else {
         iziToast.show({
             message: 'Searching input cannot be empty! Please fill the input to start searching.',
             messageColor: 'rgba(255, 255, 255, 1)',
             messageSize: '16px',
             messageLineHeight: '24px',
-            backgroundColor: 'rgba(239, 64, 64, 1)',
-            position: 'topCenter',
+            backgroundColor: 'rgba(181, 27, 27, 1)',
+            position: 'topRight',
+            maxWidth: '432px',
             timeout: 2000
         });
     }
