@@ -19,6 +19,7 @@ let lightbox = new SimpleLightbox('.gallery a', { captions: true, captionsData: 
 
 form.addEventListener("submit", (event) => {
     event.preventDefault();
+    gallery.innerHTML = '';
     if (input.value != "") {
 
         loader.style.display = 'block';
@@ -39,7 +40,6 @@ form.addEventListener("submit", (event) => {
                 } else {
                     renderFunctions(data, gallery);
                     lightbox.refresh();
-                    input.value = "";
                 };
             })
             .catch((error) => {
@@ -47,6 +47,7 @@ form.addEventListener("submit", (event) => {
             })
             .finally(() => {
                 loader.style.display = 'none';
+                event.target.reset();
             });
     } else {
         iziToast.show({
